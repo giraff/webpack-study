@@ -2,4 +2,7 @@
 
 // const alert = (msg) => window.alert(msg);
 
-new Promise();
+// new Promise();
+
+/*** 일부러 에러가 나는 코드 */
+console.log()(function () {})();
