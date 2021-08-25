@@ -12,10 +12,22 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 // connect-api-mocker를 사용할 수 있도록 수정
 const apiMocker = require('connect-api-mocker');
 
+// 최적화
+// 1. mode 이용하기 : mode를 유동적으로 사용하기 위한 코드추가
+const mode = process.env.NODE_ENV || 'development';
+
+// 2. CSS 압축 : optimize-css-assets-webpack-plugin 사용하여 CSS 빈칸 없애기
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+
+// 3. JS 코드 난독화 및 로그 제거 : terser-webpack-plugin
+const TerserPlugin = require('terser-webpack-plugin');
+
 module.exports = {
-  mode: 'development',
+  // 환경변수 NODE_ENV 값에 따라 모드를 설정하는 코드
+  mode: mode,
   entry: {
     main: './src/app.js',
+    // result: './src/result.js',
   },
   output: {
     path: path.resolve('./dist'),
@@ -34,6 +46,29 @@ module.exports = {
     onBeforeSetupMiddleware: function (devServer) {
       devServer.app.use(apiMocker('/api', 'mocks/api'));
     },
+  },
+  // 일반 플러그인은 plugins 안에 추가하는 반면 아래 optimize-css는 module.exports 바로 하위에 추가
+  optimization: {
+    // minimizer : 압축할 수 있는 플러그인들을 추가하는 부분이다.
+    // mode가 production일 때 optimize-css-assets-webpack-plugin을 사용한다
+    minimizer:
+      mode === 'production'
+        ? [
+            // CSS 압축
+            new OptimizeCSSAssetsPlugin(),
+            // JS 코드 난독화
+            new TerserPlugin({
+              terserOptions: {
+                compress: {
+                  drop_console: true,
+                },
+              },
+            }),
+          ]
+        : [],
+    // splitChunks: {
+    //   chunks: 'all',
+    // },
   },
   module: {
     rules: [
@@ -84,6 +119,7 @@ module.exports = {
         env: process.env.NODE_ENV === 'development' ? '(개발용)' : '',
       },
       minify:
+        // production 모드일 땐 빈칸, 주석 지우기
         process.env.NODE_ENV === 'production'
           ? {
               collapseWhitespace: true,
