@@ -19,10 +19,10 @@ module.exports = function myBabelPlugin() {
       // const -> var로 변환 (이미 block-scoping으로 존재)
 
       VariableDeclaration(path) {
-        console.log("VariableDeclaration() kind: ", path.node.kind); //const
+        console.log('VariableDeclaration() kind: ', path.node.kind); //const
 
-        if (path.node.kind === "const") {
-          path.node.kind = "var";
+        if (path.node.kind === 'const') {
+          path.node.kind = 'var';
         }
       },
     },
