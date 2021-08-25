@@ -9,15 +9,31 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 // 스타일시트만 따로 뽑아 별도의 CSS 파일로 만들어 역할에 따라 파일을 분리하는 플러그인
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+// connect-api-mocker를 사용할 수 있도록 수정
+const apiMocker = require('connect-api-mocker');
 
 module.exports = {
   mode: 'development',
   entry: {
-    main: './app.js',
+    main: './src/app.js',
   },
   output: {
     path: path.resolve('./dist'),
     filename: '[name].js',
+  },
+  stats: 'errors-only',
+  devServer: {
+    client: {
+      overlay: true,
+    },
+    hot: true,
+    port: 8081,
+    proxy: {
+      '/api': 'http://localhost:8081', //"api"로 시작하는 요청은 localhost:8081로 호출하라고 설정
+    },
+    onBeforeSetupMiddleware: function (devServer) {
+      devServer.app.use(apiMocker('/api', 'mocks/api'));
+    },
   },
   module: {
     rules: [
